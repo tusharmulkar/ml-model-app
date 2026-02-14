@@ -79,7 +79,8 @@ def check_my_dataset(df:pd.DataFrame, target_col= None):
     return True
 
 
-IS_STREAMLIT_CLOUD = os.getenv("STREAMLIT_CLOUD", "").lower() == "true"
+IS_STREAMLIT_CLOUD = os.getenv("STREAMLIT_CLOUD", "False")
+
 MODELS_DIR = "model"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
@@ -153,10 +154,6 @@ div.stButton > button:hover {
 st.set_page_config(layout="wide")
 
 st.title("Machine Learning Classification Model Dashboard")
-
-st.write("Environment variables snapshot:")
-st.write(dict(os.environ))
-
 
 st.markdown("Download the test dataset.")
 RAW_URL="https://raw.githubusercontent.com/tusharmulkar/ml-model-app/main/vehicle.csv"
@@ -284,36 +281,27 @@ if dataset_file != None and check_my_dataset(df) == True:
                                                                     min_samples_leaf=3,
                                                                     random_state=st.session_state.random_seed)
                             case 'XGBoost':
-                                if IS_STREAMLIT_CLOUD: 
-                                    st.write("Not training XGboost on cloud using pretrained model if exits")
-                                    if os.path.exists(model_path) :
-                                        model_trainer = joblib.load(model_path)
-                                    else:
-                                        model_trainer = None
-                                else:
-                                    # if os.path.exists(model_path) :
-                                    #     model_trainer = joblib.load(model_path)
-                                    # else:
-                                    model_trainer = XGBClassifier(n_estimators=300, 
-                                                                 max_depth=4, 
-                                                                 learning_rate=0.05,
-                                                                 subsample=0.8,
-                                                                 colsample_bytree=0.8,
-                                                                 objective='multi:softprob',
-                                                                 num_class=4,
-                                                                 eval_metric='mlogloss',
-                                                                 random_state=st.session_state.random_seed)
+                                model_trainer = XGBClassifier(n_estimators=300, 
+                                                              max_depth=4, 
+                                                              learning_rate=0.05,
+                                                              subsample=0.8,
+                                                              colsample_bytree=0.8,
+                                                              objective='multi:softprob',
+                                                              num_class=4,
+                                                              eval_metric='mlogloss',
+                                                              random_state=st.session_state.random_seed)
                             case _:
                                 st.error(f"Unknown model: {model_name}")
                                 continue
+
                         if model_trainer is not None:    
                             model_trainer.fit(scaled_X_train, y_train)
                             joblib.dump(model_trainer, model_path)
                             st.success(f"Model {model_name} trained successfully!")
-
                     else:
-                        st.write(f"Model {model_name} already exists. Loading existing model.")
+                        st.write("This may be streamlit environment. Can't train model Use if already existing")
                         if os.path.exists(model_path):
+                            st.write(f"Model {model_name} already exists. Loading existing model.")
                             model_trainer = joblib.load(model_path)
 
                     if model_trainer is not None:
@@ -339,5 +327,4 @@ if dataset_file != None and check_my_dataset(df) == True:
                     disp.plot(ax=ax, cmap=None, values_format="d")  # don't set cmap to respect default
                     ax.set_title(name)
                     st.pyplot(fig)
-
             cfg_changed = False

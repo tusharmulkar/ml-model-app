@@ -154,6 +154,10 @@ st.set_page_config(layout="wide")
 
 st.title("Machine Learning Classification Model Dashboard")
 
+st.write("Environment variables snapshot:")
+st.write(dict(os.environ))
+
+
 st.markdown("Download the test dataset.")
 RAW_URL="https://raw.githubusercontent.com/tusharmulkar/ml-model-app/main/vehicle.csv"
 
@@ -335,4 +339,5 @@ if dataset_file != None and check_my_dataset(df) == True:
                     disp.plot(ax=ax, cmap=None, values_format="d")  # don't set cmap to respect default
                     ax.set_title(name)
                     st.pyplot(fig)
+
             cfg_changed = False
